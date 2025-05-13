@@ -21,7 +21,7 @@ class RemoteLoaderTests: XCTest {
     {
         let url = URL(string: "https://www.google.com")!
         let (sut,client) = makeSUT(URL(string: "https://www.google.com")!)
-        XCTAssertEqual(client.requestURl, url)
+        XCTAssertEqual(client.requestURls[0], url)
     }
     
     func test_load_RequestDataUrl()
@@ -34,13 +34,13 @@ class RemoteLoaderTests: XCTest {
     func test_error_RequestDataUrl()
     {
         let (sut,client) = makeSUT(URL(string: "https://www.google.com")!)
-        var captureError:Error?
-        sut.load { error in
-            captureError = error
-        }
-        client.complete(with: captureError!)
-        
-        XCTAssertEqual(captureError, .connectivity)
+        var captureError = [RemoteLoader.Error]()
+        sut.load {captureError.append($0)}
+        let clientError = NSError(domain: "Test", code: 0) as! Error
+
+//        client.completions[0](clientError)
+        client.complete(with: clientError, at: 0)
+        XCTAssertEqual(captureError, [.connectivity])
     }
     
     private func makeSUT(_ url:URL) -> (RemoteLoader, httpClientSpy) {
@@ -50,18 +50,22 @@ class RemoteLoaderTests: XCTest {
     }
     
     private final class httpClientSpy: HttpClient {
-        var requestURl: URL?
-        var requestURls: [URL] = []
-        var completions = [(Error) -> Void]()
+        var requestURls: [URL] {
+            return messages.map{ $0.url}
+        }
+//        var completions = [(Error) -> Void]()
+        private var messages = [(url:URL, completion:(Error) -> Void)]()
         func get(from url: URL, completion: @escaping (Error) -> Void) {
-            self.requestURl = url
-            self.requestURls.append(url)
-            self.completions.append(completion)
+        
+//            self.requestURls.append(url)
+//            self.completions.append(completion)
+            messages.append((url,completion))
         }
         
         func complete(with error:Error, at index:Int = 0)
         {
-            completions[index](error)
+//            completions[index](error)
+            messages[index].completion(error)
         }
     }
 }

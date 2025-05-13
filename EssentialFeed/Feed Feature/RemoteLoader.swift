@@ -7,14 +7,14 @@
 
 import Foundation
 
-enum Error:Swift.Error {
-    case connectivity
-}
+
 
 class RemoteLoader {
     let client:HttpClient
     let url:URL?
-    
+    enum Error:Swift.Error {
+        case connectivity
+    }
     init(client: HttpClient, url: URL? ) {
         self.client = client
         self.url = url
