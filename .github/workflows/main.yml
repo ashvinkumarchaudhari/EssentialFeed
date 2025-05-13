@@ -1,0 +1,28 @@
+# File: .github/workflows/macos-build.yml
+name: Build macOS App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-15.4.1
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set up Xcode
+      run: sudo xcode-select -s /Applications/Xcode_16.3.app
+
+    - name: Build macOS app
+      run: |
+        xcodebuild \
+          -project EssentialFeed.xcodeproj \
+          -scheme EssentialFeed \
+          -destination 'platform=macOS' \
+          clean build
+
