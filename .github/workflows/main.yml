@@ -23,6 +23,6 @@ jobs:
         xcodebuild \
           -project EssentialFeed.xcodeproj \
           -scheme EssentialFeed \
-          -destination 'platform=macOS' \
+          'destination=platform=macOS' \
           clean build
 
