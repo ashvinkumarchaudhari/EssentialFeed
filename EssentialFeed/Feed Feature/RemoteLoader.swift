@@ -8,7 +8,7 @@
 import Foundation
 
 enum HttpClientResult {
-    case success(HTTPURLResponse)
+    case success(Data, HTTPURLResponse)
     case failure(Error)
 }
 protocol HttpClient {
@@ -22,6 +22,7 @@ class RemoteLoader {
         case connectivity
         case invalidateData
     }
+ 
     init(client: HttpClient, url: URL? ) {
         self.client = client
         self.url = url
@@ -32,9 +33,10 @@ class RemoteLoader {
         self.client.get(from: self.url!) { result in
             switch result {
             case .success:
-               completion(.connectivity)
-            case .failure:
                 completion(.invalidateData)
+                break
+            case .failure:
+                completion(.connectivity)
 
             }
         }
