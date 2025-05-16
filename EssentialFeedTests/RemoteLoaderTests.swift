@@ -30,7 +30,7 @@ private final class httpClientSpy: HttpClient {
     
     func complete(withStatusCode:Int, data:Data , at index:Int = 0)
     {
-        let httpRes = HTTPURLResponse(url: URL(string: "https://www.google.com")!, statusCode: withStatusCode, httpVersion: nil, headerFields: nil)!
+        let httpRes = HTTPURLResponse(url: requestURls[index], statusCode: withStatusCode, httpVersion: nil, headerFields: nil)!
         messages[index].completion(.success(data, httpRes))
     }
 }
@@ -70,11 +70,11 @@ class RemoteLoaderTests: XCTestCase {
     {
         let (sut,client) = makeSUT(URL(string: "https://www.google.com")!)
         // let clientError = NSError(domain: "Test", code: 0) as! Error
-        let sample = [200,105,300,400,500]
+        let sample = [199,201,300,400,500]
         sample.enumerated().forEach { index, value in
             expect(sut, result: .failure(.invalidateData)) {
-                let data = Data("invalid json".utf8)
-                client.complete(withStatusCode: value, data: data, at: index)
+                let json = makeItemJson(item: [])
+                client.complete(withStatusCode: value, data: json, at: index)
             }
         }
     }
@@ -93,7 +93,7 @@ class RemoteLoaderTests: XCTestCase {
     {
         let (sut,client) = makeSUT(URL(string: "https://www.google.com")!)
         expect(sut, result:.success([])) {
-            let validEmptyJson = Data("{\"items\": []}".utf8)
+            let validEmptyJson = makeItemJson(item: [])
             client.complete(withStatusCode: 200, data: validEmptyJson)
         }
     }
