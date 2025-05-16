@@ -22,21 +22,34 @@ class RemoteLoader {
         case connectivity
         case invalidateData
     }
+    
+    enum Result : Equatable {
+        case success([FeedItem])
+        case failure(Error)
+    }
  
     init(client: HttpClient, url: URL? ) {
         self.client = client
         self.url = url
     }
     
-    func load(_ completion: @escaping (Error) -> Void)
+    func load(_ completion: @escaping (Result) -> Void)
     {
         self.client.get(from: self.url!) { result in
             switch result {
-            case .success:
-                completion(.invalidateData)
+            case let .success(data, _):
+                if let root = try? JSONDecoder().decode(Root.self, from: data)
+            
+                {
+                    completion(.success(root.items))
+                }
+                else
+                {
+                    completion(.failure(.invalidateData))
+                }
                 break
             case .failure:
-                completion(.connectivity)
+                completion(.failure(.connectivity))
 
             }
         }
@@ -44,4 +57,6 @@ class RemoteLoader {
     
 }
 
-
+struct Root : Decodable {
+    var items: [FeedItem]
+}

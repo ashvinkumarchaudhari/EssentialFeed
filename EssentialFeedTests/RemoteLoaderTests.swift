@@ -27,8 +27,8 @@ private final class httpClientSpy: HttpClient {
         messages[index].completion(.failure(error))
     }
     
-
-    func complete(withStatusCode:Int, data:Data = Data(), at index:Int = 0)
+    
+    func complete(withStatusCode:Int, data:Data , at index:Int = 0)
     {
         let httpRes = HTTPURLResponse(url: URL(string: "https://www.google.com")!, statusCode: withStatusCode, httpVersion: nil, headerFields: nil)!
         messages[index].completion(.success(data, httpRes))
@@ -45,7 +45,6 @@ class RemoteLoaderTests: XCTestCase {
     
     func test_init_RequestDataUrl()
     {
-        let url = URL(string: "https://www.google.com")!
         let (_,client) = makeSUT(URL(string: "https://www.google.com")!)
         XCTAssertEqual(client.requestURls, [])
     }
@@ -61,13 +60,10 @@ class RemoteLoaderTests: XCTestCase {
     func test_error_RequestDataUrl()
     {
         let (sut,client) = makeSUT(URL(string: "https://www.google.com")!)
-        var captureError = [RemoteLoader.Error]()
-        sut.load {captureError.append($0)}
-        let clientError = NSError(domain: "Test", code: 0) as Error
-        
-        //        client.completions[0](clientError)
-        client.complete(with: clientError, at: 0)
-        XCTAssertEqual(captureError, [.connectivity])
+        expect(sut, result: .failure(.connectivity)) {
+            let clientError = NSError(domain: "Test", code: 0) as Error
+            client.complete(with: clientError)
+        }
     }
     
     func test_error_200RequestDataUrl()
@@ -76,43 +72,86 @@ class RemoteLoaderTests: XCTestCase {
         // let clientError = NSError(domain: "Test", code: 0) as! Error
         let sample = [200,105,300,400,500]
         sample.enumerated().forEach { index, value in
-            var captureError = [RemoteLoader.Error]()
-            sut.load {captureError.append($0)}
-            //        client.completions[0](clientError)
-            client.complete(withStatusCode: value, at: index)
-            XCTAssertEqual(captureError, [.invalidateData])
+            expect(sut, result: .failure(.invalidateData)) {
+                let data = Data("invalid json".utf8)
+                client.complete(withStatusCode: value, data: data, at: index)
+            }
         }
     }
     
     func test_error_200WithInvalidJsonRequestDataUrl()
     {
         let (sut,client) = makeSUT(URL(string: "https://www.google.com")!)
-        //        let clientError = NSError(domain: "Test", code: 0) as! Error
-//        var captureError = [RemoteLoader.Error]()
-//        sut.load {captureError.append($0)}
-        expect(sut, error: .invalidateData) {
-            //        client.completions[0](clientError)
+        expect(sut, result: .failure(.invalidateData)) {
             let invalidJson = Data("invalid json".utf8)
             client.complete(withStatusCode: 200, data: invalidJson)
         }
+        
+    }
+    
+    func test_error_200WithEmptyJsonRequestDataUrl()
+    {
+        let (sut,client) = makeSUT(URL(string: "https://www.google.com")!)
+        expect(sut, result:.success([])) {
+            let validEmptyJson = Data("{\"items\": []}".utf8)
+            client.complete(withStatusCode: 200, data: validEmptyJson)
+        }
+    }
+    
+    func test_error_200WithJsonRequestDataUrl()
+    {
+        let (sut,client) = makeSUT(URL(string: "https://www.google.com")!)
+        let (modal1,json1) = makeItem(id: UUID(), description: "description", location: "location", imageURL: URL(string: "https://www.google.com")!)
+        let (modal2,json2) = makeItem(id: UUID(), imageURL: URL(string: "https://www.google.com")!)
+        
+        expect(sut, result: .success([modal1,modal2])) {
 
+            let validJson = makeItemJson(item: [json1,json2])
+            client.complete(withStatusCode: 200, data: validJson)
+        }
+        
     }
     
     // Helpers
-    
     private func makeSUT(_ url:URL) -> (RemoteLoader, httpClientSpy) {
         let clientSpy = httpClientSpy()
         let sut = RemoteLoader(client: clientSpy, url: url)
         return (sut, clientSpy)
     }
     
-    private func expect(_ sut: RemoteLoader,error:RemoteLoader.Error, action:() -> Void, file: StaticString = #file, line: UInt = #line)
+    private func expect(_ sut: RemoteLoader,result:RemoteLoader.Result, action:() -> Void, file: StaticString = #file, line: UInt = #line)
     {
-        var captureError = [RemoteLoader.Error]()
-        sut.load {captureError.append($0)}
+        var captureResult = [RemoteLoader.Result]()
+        //        sut.load {captureError.append($0)}
+        sut.load { result in
+            captureResult.append(result)
+            
+        }
         action()
-        XCTAssertEqual(captureError, [error], file: file, line: line)
+        XCTAssertEqual(captureResult, [result], file: file, line: line)
     }
+    
+    private func makeItem(id: UUID, description: String? = nil, location: String? = nil, imageURL: URL) -> (model:FeedItem, json: [String: Any]) {
+        let feedItem = FeedItem(id: id, description: description, location: location, imageURL: imageURL)
+        let feedJson = ["id": id.uuidString,
+                        "description": description,
+                        "location": location,
+                        "image": imageURL.absoluteString].reduce(into: [String:Any]()) { (acc, e) in
+            if let value = e.value {
+                acc[e.key] = value
+            }
+        }
+        return (feedItem, feedJson)
+    }
+    
+    private func makeItemJson(item:[[String: Any]]) -> Data
+    {
+        let json = ["items":item]
+        let validJson = try! JSONSerialization.data(withJSONObject: json)
+        return validJson
+    }
+    
+    
     
 }
 
