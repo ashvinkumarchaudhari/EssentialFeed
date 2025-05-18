@@ -8,25 +8,24 @@
 import Foundation
 
 
-class RemoteLoader {
+public final class RemoteLoader:FeedLoader {
     let client:HttpClient
     let url:URL?
-    enum Error:Swift.Error {
+//    public enum Error:Swift.Error {
+    public enum Error : Swift.Error {
         case connectivity
         case invalidateData
     }
     
-    enum Result : Equatable {
-        case success([FeedItem])
-        case failure(Error)
-    }
- 
-    init(client: HttpClient, url: URL? ) {
+//   typealias Result = LoadFeedResult<Error>
+    typealias Result = LoadFeedResult
+
+     init(client: HttpClient, url: URL? ) {
         self.client = client
         self.url = url
     }
     
-    func load(_ completion: @escaping (Result) -> Void)
+     func load(completion: @escaping (Result) -> Void)
     {
         self.client.get(from: self.url!) { [weak self] result in
             guard self != nil else { return }
@@ -35,7 +34,7 @@ class RemoteLoader {
                 completion(FeedItemWrapper.map(data, response))
                 break
             case .failure:
-                completion(.failure(.connectivity))
+                completion(.failure(Error.connectivity))
             }
         }
     }
