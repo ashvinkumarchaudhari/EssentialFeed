@@ -14,8 +14,8 @@ private final class httpClientSpy: HttpClient {
     var requestURls: [URL] {
         return messages.map{ $0.url}
     }
+    
     func get(from url: URL, completion: @escaping (HttpClientResult) -> Void) {
-        
         //            self.requestURls.append(url)
         //            self.completions.append(completion)
         messages.append((url,completion))
@@ -26,7 +26,6 @@ private final class httpClientSpy: HttpClient {
         //            completions[index](error)
         messages[index].completion(.failure(error))
     }
-    
     
     func complete(withStatusCode:Int, data:Data , at index:Int = 0)
     {
@@ -123,7 +122,6 @@ class RemoteLoaderTests: XCTestCase {
         clientSpy.complete(withStatusCode: 200, data: makeItemJson(item: []))
         XCTAssertTrue(captureResult.isEmpty)
     }
-    
     // Helpers
     private func makeSUT(_ url:URL, file: StaticString = #file, line: UInt = #line) -> (RemoteLoader, httpClientSpy) {
         let clientSpy = httpClientSpy()
@@ -132,9 +130,11 @@ class RemoteLoaderTests: XCTestCase {
         trackMemoryLeak(clientSpy)
         return (sut, clientSpy)
     }
+    
     private func failure(_ error: RemoteLoader.Error) -> RemoteLoader.Result {
         return .failure(error)
-        }
+    }
+    
     private func trackMemoryLeak(_ instance: AnyObject?, file: StaticString = #file, line: UInt = #line)
     {
         addTeardownBlock { [weak instance] in
@@ -144,19 +144,19 @@ class RemoteLoaderTests: XCTestCase {
     
     private func expect(_ sut: RemoteLoader,toCompleteWith expectedResult:RemoteLoader.Result, action:() -> Void, file: StaticString = #file, line: UInt = #line)
     {
-//        var captureResult = [RemoteLoader.Result]()
+        //        var captureResult = [RemoteLoader.Result]()
         //        sut.load {captureError.append($0)}
         
         let exp = expectation(description: "wait for load completion")
         
         sut.load { receiveResult in
-//            captureResult.append(result)
+            //            captureResult.append(result)
             switch (receiveResult,expectedResult) {
             case let (.success(receiveItems),.success(expectedItems)):
                 XCTAssertEqual(receiveItems, expectedItems, file: file, line: line)
             case let (.failure(receiveError as RemoteLoader.Error), .failure(expectedError as RemoteLoader.Error)):
                 XCTAssertEqual(receiveError, expectedError, file: file, line: line)
-
+                
             default:
                 XCTFail("Expected \(expectedResult), got \(receiveResult) instead", file: file, line: line)
             }
@@ -168,14 +168,14 @@ class RemoteLoaderTests: XCTestCase {
     
     private func makeItem(id: UUID, description: String? = nil, location: String? = nil, imageURL: URL) -> (model:FeedItem, json: [String: Any]) {
         let feedItem = FeedItem(id: id, description: description, location: location, imageURL: imageURL)
-//        let feedJson = ["id": id.uuidString,
-//                        "description": description,
-//                        "location": location,
-//                        "image": imageURL.absoluteString].reduce(into: [String:Any]()) { (acc, e) in
-//            if let value = e.value {
-//                acc[e.key] = value
-//            }
-//        }
+        //        let feedJson = ["id": id.uuidString,
+        //                        "description": description,
+        //                        "location": location,
+        //                        "image": imageURL.absoluteString].reduce(into: [String:Any]()) { (acc, e) in
+        //            if let value = e.value {
+        //                acc[e.key] = value
+        //            }
+        //        }
         let feedJson = ["id": id.uuidString,
                         "description": description,
                         "location": location,
@@ -189,8 +189,5 @@ class RemoteLoaderTests: XCTestCase {
         let validJson = try! JSONSerialization.data(withJSONObject: json)
         return validJson
     }
-    
-    
-    
 }
 

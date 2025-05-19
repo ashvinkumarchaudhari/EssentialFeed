@@ -9,7 +9,6 @@ import Foundation
 
 internal final class FeedItemWrapper
 {
-
     private struct Root : Decodable {
         var items: [Item]
         var feed:[FeedItem]  {
@@ -17,13 +16,11 @@ internal final class FeedItemWrapper
         }
     }
     
- 
     private struct Item : Decodable {
         let id: UUID
         let description: String?
         let location: String?
         let image: URL
-        
         var item:FeedItem {
             FeedItem(id: id, description: description, location: location, imageURL: image)
         }

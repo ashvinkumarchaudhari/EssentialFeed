@@ -8,24 +8,23 @@
 import Foundation
 
 
-public final class RemoteLoader:FeedLoader {
+ final class RemoteLoader:FeedLoader {
     let client:HttpClient
     let url:URL?
 //    public enum Error:Swift.Error {
-    public enum Error : Swift.Error {
+    enum Error : Swift.Error {
         case connectivity
         case invalidateData
     }
     
 //   typealias Result = LoadFeedResult<Error>
     typealias Result = LoadFeedResult
-
      init(client: HttpClient, url: URL? ) {
         self.client = client
         self.url = url
     }
     
-     func load(completion: @escaping (Result) -> Void)
+    func load(completion: @escaping (Result) -> Void)
     {
         self.client.get(from: self.url!) { [weak self] result in
             guard self != nil else { return }
@@ -38,8 +37,6 @@ public final class RemoteLoader:FeedLoader {
             }
         }
     }
-    
-    
 }
 
 
