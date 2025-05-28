@@ -11,6 +11,6 @@ import Foundation
     case success(Data, HTTPURLResponse)
     case failure(Error)
 }
- protocol HttpClient {
+public protocol HttpClient {
     func get(from _url : URL, completion: @escaping (HttpClientResult) -> Void)
 }

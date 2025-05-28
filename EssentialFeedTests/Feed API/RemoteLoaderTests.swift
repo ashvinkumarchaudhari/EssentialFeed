@@ -135,12 +135,12 @@ class RemoteLoaderTests: XCTestCase {
         return .failure(error)
     }
     
-    private func trackMemoryLeak(_ instance: AnyObject?, file: StaticString = #file, line: UInt = #line)
-    {
-        addTeardownBlock { [weak instance] in
-            XCTAssertNil(instance, "instance should not deallocated" ,file: file, line: line)
-        }
-    }
+//    private func trackMemoryLeak(_ instance: AnyObject?, file: StaticString = #file, line: UInt = #line)
+//    {
+//        addTeardownBlock { [weak instance] in
+//            XCTAssertNil(instance, "instance should not deallocated" ,file: file, line: line)
+//        }
+//    }
     
     private func expect(_ sut: RemoteLoader,toCompleteWith expectedResult:RemoteLoader.Result, action:() -> Void, file: StaticString = #file, line: UInt = #line)
     {
