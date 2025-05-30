@@ -9,28 +9,26 @@ import XCTest
 import EssentialFeed
 
 
-
-
 class URLSessionHTTPClientTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        URLProtocolStub.StartInterCeptingRequest()
+        URLProtocolStub.startInterceptingRequest()
     }
     
     override func tearDown() {
         super.tearDown()
-        URLProtocolStub.StopInterCeptingRequest()
+        URLProtocolStub.stopInterceptingRequest()
     }
     
 //    override func setUpWithError() throws {
 //        try super.setUpWithError()
-//        URLProtocolStub.StartInterCeptingRequest()
+//        URLProtocolStub.startInterceptingRequest()
 //    }
 //
 //    override func tearDownWithError() throws {
 //        try super.tearDownWithError()
-//        URLProtocolStub.StopInterCeptingRequest()
+//        URLProtocolStub.stopInterceptingRequest()
 //    }
     func test_getFromURL_failsOnRequestError() {
         let requestError = NSError(domain: "any error", code: 1, userInfo: nil) // anyError()
@@ -111,12 +109,12 @@ class URLSessionHTTPClientTests: XCTestCase {
             requestObserver = observer
         }
         
-        static func StartInterCeptingRequest()
+        static func startInterceptingRequest()
         {
             URLProtocol.registerClass(URLProtocolStub.self)
         }
         
-        static func StopInterCeptingRequest()
+        static func stopInterceptingRequest()
         {
             URLProtocol.unregisterClass(URLProtocolStub.self)
             stubs = nil
