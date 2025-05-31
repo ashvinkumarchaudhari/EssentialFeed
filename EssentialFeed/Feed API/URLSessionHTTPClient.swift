@@ -6,24 +6,46 @@
 //
 import Foundation
 
-extension URLSession: HttpClient
-{
-    private struct UnexpectedError: Error {
-        
+public class URLSessionHTTPClient: HttpClient {
+    private let session: URLSession
+    
+    public init(session: URLSession = .shared) {
+        self.session = session
     }
-    public func get(from url: URL, completion: @escaping(HttpClientResult) -> Void) {
-//        let url = URL(string: "https://wrong-url.com")!
-            dataTask(with: url) { data, response, error in
+    
+    private struct UnexpectedValuesRepresentation: Error {}
+    
+    public func get(from url: URL, completion: @escaping (HttpClientResult) -> Void) {
+        session.dataTask(with: url) { data, response, error in
             if let error = error {
                 completion(.failure(error))
-            }
-            else if let response = response as? HTTPURLResponse,let data = data {
+            } else if let data = data, let response = response as? HTTPURLResponse {
                 completion(.success(data, response))
-            }
-            else {
-                completion(.failure(UnexpectedError()))
+            } else {
+                completion(.failure(UnexpectedValuesRepresentation()))
             }
         }.resume()
     }
 }
+
+//extension URLSession: HttpClient
+//{
+//    private struct UnexpectedError: Error {
+//        
+//    }
+//    public func get(from url: URL, completion: @escaping(HttpClientResult) -> Void) {
+////        let url = URL(string: "https://wrong-url.com")!
+//            dataTask(with: url) { data, response, error in
+//            if let error = error {
+//                completion(.failure(error))
+//            }
+//            else if let response = response as? HTTPURLResponse,let data = data {
+//                completion(.success(data, response))
+//            }
+//            else {
+//                completion(.failure(UnexpectedError()))
+//            }
+//        }.resume()
+//    }
+//}
 
